@@ -1,19 +1,22 @@
--- ORION KÜTÜPHANESİ (Arayüz İçin)
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "Beehive Pro | Fly v1", HidePremium = false, SaveConfig = true, ConfigFolder = "BeehiveConfig"})
+-- RAYFIELD KÜTÜPHANESİ (Delta ile En Uyumlu ve Sorunsuz Arayüz)
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Beehive Pro | Fly v2",
+   LoadingTitle = "Script Yükleniyor...",
+   LoadingSubtitle = "by a81495403-ux",
+   ConfigurationSaving = {
+      Enabled = false
+   }
+})
 
 -- ANA SEKME
-local FlyTab = Window:MakeTab({
-    Name = "Uçuş Menüsü",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+local Tab = Window:CreateTab("Uçuş Menüsü", 4483345998)
 
 -- UÇUŞ DEĞİŞKENLERİ
 local Flying = false
 local Speed = 50
 local Player = game.Players.LocalPlayer
-local Mouse = Player:GetMouse()
 
 -- UÇUŞ FONKSİYONU
 local function StartFlying()
@@ -34,39 +37,40 @@ local function StartFlying()
     BodyGyro.CFrame = Root.CFrame
     BodyGyro.Parent = Root
 
-    spawn(function()
+    task.spawn(function()
         while Flying do
-            wait()
-            BodyVelocity.Velocity = (workspace.CurrentCamera.CFrame.LookVector * Speed)
-            BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            task.wait()
+            if workspace.CurrentCamera then
+                BodyVelocity.Velocity = (workspace.CurrentCamera.CFrame.LookVector * Speed)
+                BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            end
         end
         BodyVelocity:Destroy()
         BodyGyro:Destroy()
     end)
 end
 
--- ARAYÜZ (GUI) ELEMANLARI
-FlyTab:AddToggle({
-    Name = "Uçmayı Başlat",
-    Default = false,
-    Callback = function(Value)
+-- ARAYÜZ ELEMANLARI
+Tab:CreateToggle({
+   Name = "Uçmayı Başlat",
+   CurrentValue = false,
+   Flag = "FlyToggle",
+   Callback = function(Value)
         Flying = Value
         if Flying then
             StartFlying()
         end
-    end
+   end,
 })
 
-FlyTab:AddSlider({
-    Name = "Uçuş Hızı",
-    Min = 10,
-    Max = 200,
-    Default = 50,
-    Increment = 1,
-    ValueName = "Hız",
-    Callback = function(Value)
+Tab:CreateSlider({
+   Name = "Uçuş Hızı",
+   Info = "Uçma hızını ayarlar",
+   Min = 10,
+   Max = 200,
+   CurrentValue = 50,
+   Flag = "FlySpeed",
+   Callback = function(Value)
         Speed = Value
-    end
+   end,
 })
-
-OrionLib:Init()
