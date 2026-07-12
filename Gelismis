@@ -1,0 +1,258 @@
+-- DIŞ BAĞLANTI İHTİYACI OLMAYAN GELİŞMİŞ MOBİL VE DELTA UYUMLU DOĞAL MENÜ (v7)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseBtn = Instance.new("TextButton")
+
+-- Sürükleme ve Arayüz Ayarları
+ScreenGui.Parent = game.CoreGui
+MainFrame.Name = "AyazlarkolarMenu"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+MainFrame.Position = UDim2.new(0.3, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 320, 0, 500) -- Özellikler için menü boyutunu büyüttük
+MainFrame.Active = true
+MainFrame.Draggable = true 
+
+Title.Parent = MainFrame
+Title.Text = "Ayazlarkolar | Ultimate v7"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+
+CloseBtn.Parent = MainFrame
+CloseBtn.Text = "X"
+CloseBtn.Position = UDim2.new(0.85, 0, 0, 0)
+CloseBtn.Size = UDim2.new(0, 45, 0, 40)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- Kaydırılabilir Liste (Özelliklerin sığması için)
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Parent = MainFrame
+ScrollFrame.Size = UDim2.new(1, 0, 1, -40)
+ScrollFrame.Position = UDim2.new(0, 0, 0, 40)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
+ScrollFrame.ScrollBarThickness = 6
+
+-- Tasarım Şablonu Fonksiyonu
+local function createButton(text, pos, color)
+    local btn = Instance.new("TextButton")
+    btn.Parent = ScrollFrame
+    btn.Text = text
+    btn.Position = pos
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    return btn
+end
+
+local function createTextBox(placeholder, pos)
+    local box = Instance.new("TextBox")
+    box.Parent = ScrollFrame
+    box.PlaceholderText = placeholder
+    box.Text = ""
+    box.Position = pos
+    box.Size = UDim2.new(0.9, 0, 0, 35)
+    box.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    return box
+end
+
+-- ELEMANLARIN OLUŞTURULMASI
+local ToggleFlyBtn = createButton("Uçuşu Aç / Kapat (KAPALI)", UDim2.new(0.05, 0, 0.02, 0))
+local SpeedTextBox = createTextBox("Uçuş Hızı Gir (Varsayılan: 50)", UDim2.new(0.05, 0, 0.1, 0)) SpeedTextBox.Text = "50"
+local WalkSpeedTextBox = createTextBox("Yürüme Hızı (WalkSpeed - Varsayılan: 16)", UDim2.new(0.05, 0, 0.18, 0)) WalkSpeedTextBox.Text = "16"
+local JumpPowerTextBox = createTextBox("Zıplama Gücü (JumpPower - Varsayılan: 50)", UDim2.new(0.05, 0, 0.26, 0)) JumpPowerTextBox.Text = "50"
+local GravityTextBox = createTextBox("Yerçekimi Ayarla (Gravity - Varsayılan: 196.2)", UDim2.new(0.05, 0, 0.34, 0)) GravityTextBox.Text = "196.2"
+local WallHopBtn = createButton("Otomatik Wall Hop (KAPALI)", UDim2.new(0.05, 0, 0.42, 0))
+local InfiniteJumpBtn = createButton("Sonsuz Zıplama (KAPALI)", UDim2.new(0.05, 0, 0.50, 0))
+local TargetTextBox = createTextBox("Uçurulacak Oyuncu Adı Yaz", UDim2.new(0.05, 0, 0.58, 0))
+local ControlPlayerBtn = createButton("Seçilen Kişiyi Uçur / Durdur", UDim2.new(0.05, 0, 0.66, 0), Color3.fromRGB(80, 50, 50))
+local TeleportBtn = createButton("Yazılan Oyuncuya Işınlan", UDim2.new(0.05, 0, 0.74, 0), Color3.fromRGB(50, 70, 90))
+
+-- SİSTEM DEĞİŞKENLERİ
+local Flying = false
+local WallHopEnabled = false
+local InfiniteJump = false
+local TargetFlying = false
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- %100 KUSURSUZ VE HASSASİYETLİ MOBİL FLY DÖNGÜSÜ
+local function StartFlying()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local Root = Character:WaitForChild("HumanoidRootPart")
+    local Humanoid = Character:WaitForChild("Humanoid")
+    
+    if Root:FindFirstChild("FlyVelocity") then Root.FlyVelocity:Destroy() end
+    if Root:FindFirstChild("FlyGyro") then Root.FlyGyro:Destroy() end
+    
+    local BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.Name = "FlyVelocity"
+    BodyVelocity.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    BodyVelocity.Parent = Root
+    
+    local BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.Name = "FlyGyro"
+    BodyGyro.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+    BodyGyro.P = 10000
+    BodyGyro.Parent = Root
+
+    task.spawn(function()
+        while Flying and Character and Root and Humanoid do
+            RunService.RenderStepped:Wait()
+            local CurrentSpeed = tonumber(SpeedTextBox.Text) or 50
+            
+            if Humanoid.MoveDirection.Magnitude > 0 then
+                local Cam = workspace.CurrentCamera
+                if Cam then
+                    -- Joystick hareketlerini kameranın gerçek açısıyla (Yukarı/Aşağı dahil) kusursuz senkronize eden formül:
+                    local LookVector = Cam.CFrame.LookVector
+                    local RightVector = Cam.CFrame.RightVector
+                    
+                    local ForwardMove = LookVector * -Humanoid.MoveDirection.Z
+                    local SideMove = RightVector * Humanoid.MoveDirection.X
+                    
+                    local MoveDirection = (ForwardMove + SideMove).Unit
+                    BodyVelocity.Velocity = MoveDirection * CurrentSpeed
+                end
+            else
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            end
+            if workspace.CurrentCamera then
+                BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            end
+        end
+        if BodyVelocity then BodyVelocity:Destroy() end
+        if BodyGyro then BodyGyro:Destroy() end
+    end)
+end
+
+-- TEKST KUTULARI VE DEĞİŞKEN TETİKLEYİCİLERİ
+WalkSpeedTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(WalkSpeedTextBox.Text)
+    if val and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.WalkSpeed = val
+    end
+end)
+
+JumpPowerTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(JumpPowerTextBox.Text)
+    if val and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.UseJumpPower = true
+        Player.Character.Humanoid.JumpPower = val
+    end
+end)
+
+GravityTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(GravityTextBox.Text)
+    if val then
+        workspace.Gravity = val
+    end
+end)
+
+-- SONSUZ ZIPLAMA (INFINITE JUMP)
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- BUTON ETKİLEŞİMLERİ
+ToggleFlyBtn.MouseButton1Click:Connect(function()
+    Flying = not Flying
+    if Flying then
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (AÇIK)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+        StartFlying()
+    else
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+WallHopBtn.MouseButton1Click:Connect(function()
+    WallHopEnabled = not WallHopEnabled
+    if WallHopEnabled then
+        WallHopBtn.Text = "Otomatik Wall Hop (AÇIK)"
+        WallHopBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    else
+        WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
+        WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+InfiniteJumpBtn.MouseButton1Click:Connect(function()
+    InfiniteJump = not InfiniteJump
+    if InfiniteJump then
+        InfiniteJumpBtn.Text = "Sonsuz Zıplama (AÇIK)"
+        InfiniteJumpBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    else
+        InfiniteJumpBtn.Text = "Sonsuz Zıplama (KAPALI)"
+        InfiniteJumpBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+TeleportBtn.MouseButton1Click:Connect(function()
+    local TargetName = TargetTextBox.Text
+    local Target = game.Players:FindFirstChild(TargetName)
+    if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2, 0)
+    end
+end)
+
+ControlPlayerBtn.MouseButton1Click:Connect(function()
+    TargetFlying = not TargetFlying
+    if TargetFlying then
+        local TargetName = TargetTextBox.Text
+        local Target = game.Players:FindFirstChild(TargetName)
+        if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+            Flying = true
+            StartFlying()
+            task.spawn(function()
+                while TargetFlying and Flying do
+                    task.wait()
+                    local Char = Player.Character
+                    local TargetChar = Target.Character
+                    if Char and Char:FindFirstChild("HumanoidRootPart") and TargetChar and TargetChar:FindFirstChild("HumanoidRootPart") then
+                        Char.HumanoidRootPart.CFrame = TargetChar.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+                    end
+                end
+            end)
+        end
+    else
+        TargetFlying = false
+        Flying = false
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+-- OTOMATİK WALL HOP MEKANİZMASI
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        if WallHopEnabled then
+            local Character = Player.Character
+            local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+            local Humanoid = Character and Character:FindFirstChild("Humanoid")
+            
+            if Root and Humanoid and Humanoid.MoveDirection.Magnitude > 0 then
+                local RaycastParams = RaycastParams.new()
+                RaycastParams.FilterDescendantsInstances = {Character}
+                RaycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                
+                local RaycastResult = workspace:Raycast(Root.Position, Root.CFrame.LookVector * 3, RaycastParams)
+                if RaycastResult and Humanoid.FloorMaterial ~= Enum.Material.Air then
+                    Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+        end
+    end
+end)
+
