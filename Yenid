@@ -1,0 +1,200 @@
+-- DIŞ KÜTÜPHANE BAĞIMLILIĞI OLMAYAN %100 UYUMLU DOĞAL MENÜ
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ToggleFlyBtn = Instance.new("TextButton")
+local SpeedTextBox = Instance.new("TextBox")
+local WallHopBtn = Instance.new("TextButton")
+local TargetTextBox = Instance.new("TextBox")
+local ControlPlayerBtn = Instance.new("TextButton")
+local CloseBtn = Instance.new("TextButton")
+
+-- Arayüz Ayarları
+ScreenGui.Parent = game.CoreGui
+MainFrame.Name = "AyazlarkolarMenu"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Active = true
+MainFrame.Draggable = true -- Menüyü ekranda sürükleyebilirsin
+
+Title.Parent = MainFrame
+Title.Text = "Ayazlarkolar | Ultimate v6"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+
+-- Uçuş Butonu
+ToggleFlyBtn.Parent = MainFrame
+ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+ToggleFlyBtn.Position = UDim2.new(0.05, 0, 0.15, 0)
+ToggleFlyBtn.Size = UDim2.new(0.9, 0, 0, 40)
+ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+ToggleFlyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Hız Girdisi (Buraya sayı yazarak hızı kesin olarak ayarlarsın)
+SpeedTextBox.Parent = MainFrame
+SpeedTextBox.Text = "50"
+SpeedTextBox.PlaceholderText = "Uçuş Hızı Gir (Örn: 50)"
+SpeedTextBox.Position = UDim2.new(0.05, 0, 0.3, 0)
+SpeedTextBox.Size = UDim2.new(0.9, 0, 0, 40)
+SpeedTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Wall Hop Butonu
+WallHopBtn.Parent = MainFrame
+WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
+WallHopBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+WallHopBtn.Size = UDim2.new(0.9, 0, 0, 40)
+WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+WallHopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Oyuncu Adı Giriş Kutusu
+TargetTextBox.Parent = MainFrame
+TargetTextBox.Text = ""
+TargetTextBox.PlaceholderText = "Uçurulacak Oyuncu Adı Yaz"
+TargetTextBox.Position = UDim2.new(0.05, 0, 0.6, 0)
+TargetTextBox.Size = UDim2.new(0.9, 0, 0, 40)
+TargetTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+TargetTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Oyuncuyu Uçur Butonu
+ControlPlayerBtn.Parent = MainFrame
+ControlPlayerBtn.Text = "Seçilen Kişiyi Uçur / Durdur"
+ControlPlayerBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+ControlPlayerBtn.Size = UDim2.new(0.9, 0, 0, 40)
+ControlPlayerBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 50)
+ControlPlayerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Kapatma Butonu
+CloseBtn.Parent = MainFrame
+CloseBtn.Text = "X"
+CloseBtn.Position = UDim2.new(0.85, 0, 0, 0)
+CloseBtn.Size = UDim2.new(0, 45, 0, 40)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- KOD DEĞİŞKENLERİ
+local Flying = false
+local WallHopEnabled = false
+local TargetFlying = false
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- TAM HASSASİYETLİ YÖN DÜZELTİLMİŞ UÇUŞ FONKSİYONU
+local function StartFlying()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local Root = Character:WaitForChild("HumanoidRootPart")
+    local Humanoid = Character:WaitForChild("Humanoid")
+    
+    if Root:FindFirstChild("FlyVelocity") then Root.FlyVelocity:Destroy() end
+    if Root:FindFirstChild("FlyGyro") then Root.FlyGyro:Destroy() end
+    
+    local BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.Name = "FlyVelocity"
+    BodyVelocity.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    BodyVelocity.Parent = Root
+    
+    local BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.Name = "FlyGyro"
+    BodyGyro.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+    BodyGyro.P = 10000
+    BodyGyro.Parent = Root
+
+    task.spawn(function()
+        while Flying and Character and Root and Humanoid do
+            RunService.RenderStepped:Wait()
+            local CurrentSpeed = tonumber(SpeedTextBox.Text) or 50 -- Kutudan gelen hızı oku
+            
+            if Humanoid.MoveDirection.Magnitude > 0 then
+                local CamCFrame = workspace.CurrentCamera.CFrame
+                -- Doğru yön için düzeltilmiş kamera matrisi (İleri basınca ileri, geri basınca geri gider)
+                local Direction = (CamCFrame.RightVector * Humanoid.MoveDirection.X) + (CamCFrame.LookVector * -Humanoid.MoveDirection.Z)
+                BodyVelocity.Velocity = Vector3.new(Direction.X, Direction.Y, Direction.Z).Unit * CurrentSpeed
+            else
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            end
+            BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+        end
+        if BodyVelocity then BodyVelocity:Destroy() end
+        if BodyGyro then BodyGyro:Destroy() end
+    end)
+end
+
+-- TETİKLEYİCİLER (BUTTON CLICK EVENTS)
+ToggleFlyBtn.MouseButton1Click:Connect(function()
+    Flying = not Flying
+    if Flying then
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (AÇIK)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+        StartFlying()
+    else
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+WallHopBtn.MouseButton1Click:Connect(function()
+    WallHopEnabled = not WallHopEnabled
+    if WallHopEnabled then
+        WallHopBtn.Text = "Otomatik Wall Hop (AÇIK)"
+        WallHopBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    else
+        WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
+        WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+ControlPlayerBtn.MouseButton1Click:Connect(function()
+    TargetFlying = not TargetFlying
+    if TargetFlying then
+        local TargetName = TargetTextBox.Text
+        local Target = game.Players:FindFirstChild(TargetName)
+        if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+            Flying = true
+            StartFlying()
+            task.spawn(function()
+                while TargetFlying and Flying do
+                    task.wait()
+                    local Char = Player.Character
+                    local TargetChar = Target.Character
+                    if Char and Char:FindFirstChild("HumanoidRootPart") and TargetChar and TargetChar:FindFirstChild("HumanoidRootPart") then
+                        Char.HumanoidRootPart.CFrame = TargetChar.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+                    end
+                end
+            end)
+        end
+    else
+        TargetFlying = false
+        Flying = false
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+-- OTOMATİK WALL HOP MEKANİZMASI
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        if WallHopEnabled then
+            local Character = Player.Character
+            local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+            local Humanoid = Character and Character:FindFirstChild("Humanoid")
+            
+            if Root and Humanoid and Humanoid.MoveDirection.Magnitude > 0 then
+                local RaycastParams = RaycastParams.new()
+                RaycastParams.FilterDescendantsInstances = {Character}
+                RaycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                
+                local RaycastResult = workspace:Raycast(Root.Position, Root.CFrame.LookVector * 3, RaycastParams)
+                if RaycastResult and Humanoid.FloorMaterial ~= Enum.Material.Air then
+                    Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+        end
+    end
+end)
