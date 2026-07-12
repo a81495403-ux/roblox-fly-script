@@ -1,0 +1,213 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Beehive Pro | Ultimate v5",
+   LoadingTitle = "Script Yükleniyor...",
+   LoadingSubtitle = "by a81495403-ux",
+   ConfigurationSaving = { Enabled = false }
+})
+
+local MainTab = Window:CreateTab("Karakter Özellikleri", 4483345998)
+local PlayerTab = Window:CreateTab("Oyuncu Kontrolü", 4483345998)
+
+-- GLOBAL DEĞİŞKENLER (Kesin Erişim İçin)
+_G.Flying = false
+_G.FlySpeed = 50
+_G.WallHopEnabled = false
+_G.SelectedPlayer = ""
+_G.TargetFlying = false
+
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- 1. YÖN VE HIZ SORUNU ÇÖZÜLMÜŞ UÇUŞ DÖNGÜSÜ
+local function StartFlying()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local Root = Character:WaitForChild("HumanoidRootPart")
+    local Humanoid = Character:WaitForChild("Humanoid")
+    
+    -- Eski kalıntıları temizle
+    if Root:FindFirstChild("FlyVelocity") then Root.FlyVelocity:Destroy() end
+    if Root:FindFirstChild("FlyGyro") then Root.FlyGyro:Destroy() end
+    
+    local BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.Name = "FlyVelocity"
+    BodyVelocity.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+    BodyVelocity.Velocity = Vector3.new(0,0,0)
+    BodyVelocity.Parent = Root
+    
+    local BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.Name = "FlyGyro"
+    BodyGyro.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+    BodyGyro.P = 10000
+    BodyGyro.CFrame = Root.CFrame
+    BodyGyro.Parent = Root
+
+    task.spawn(function()
+        while _G.Flying and Character and Root and Humanoid do
+            RunService.RenderStepped:Wait()
+            if Humanoid.MoveDirection.Magnitude > 0 then
+                -- Kameranın tam olarak baktığı açıya (sağ, sol, yukarı, aşağı) göre git
+                local CamCFrame = workspace.CurrentCamera.CFrame
+                local Look = CamCFrame.LookVector
+                local Right = CamCFrame.RightVector
+                
+                -- Joystick hareketlerini kameraya uyarla
+                local Direction = (Right * Humanoid.MoveDirection.X) + (Look * Humanoid.MoveDirection.Z)
+                if Direction.Magnitude > 0 then
+                    BodyVelocity.Velocity = Direction.Unit * _G.FlySpeed
+                end
+            else
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            end
+            BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+        end
+        if BodyVelocity then BodyVelocity:Destroy() end
+        if BodyGyro then BodyGyro:Destroy() end
+    end)
+end
+
+-- 2. DUVAR ZIPLAMASI DÖNGÜSÜ
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        if _G.WallHopEnabled then
+            local Character = Player.Character
+            local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+            local Humanoid = Character and Character:FindFirstChild("Humanoid")
+            
+            if Root and Humanoid and Humanoid.MoveDirection.Magnitude > 0 then
+                local RaycastParams = RaycastParams.new()
+                RaycastParams.FilterDescendantsInstances = {Character}
+                RaycastParams.FilterType = Enum.RaycastFilterType.Exclude
+                
+                local RaycastResult = workspace:Raycast(Root.Position, Root.CFrame.LookVector * 3, RaycastParams)
+                if RaycastResult and Humanoid.FloorMaterial ~= Enum.Material.Air then
+                    Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+        end
+    end
+end)
+
+-- 3. OYUNCU LİSTESİ ALMA FONKSİYONU
+local function GetPlayerNames()
+    local names = {}
+    for _, p in ipairs(game.Players:GetPlayers()) do
+        if p ~= Player then
+            table.insert(names, p.Name)
+        end
+    end
+    if #names == 0 then table.insert(names, "Sunucuda Kimse Yok") end
+    return names
+end
+
+-- --- SEKMELERİN İÇERİĞİ ---
+
+MainTab:CreateToggle({
+   Name = "Uçmayı Aç / Kapat",
+   CurrentValue = false,
+   Flag = "FlyToggle",
+   Callback = function(Value)
+        _G.Flying = Value
+        if _G.Flying then StartFlying() end
+   end,
+})
+
+-- Hız Değişkenini Doğrudan Güncelleyen Slider
+MainTab:CreateSlider({
+   Name = "Uçuş Hızı (Speed)",
+   Min = 10,
+   Max = 250,
+   CurrentValue = 50,
+   Flag = "FlySpeed",
+   Callback = function(Value)
+        _G.FlySpeed = Value
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Otomatik Wall Hop",
+   CurrentValue = false,
+   Flag = "WallHopToggle",
+   Callback = function(Value)
+        _G.WallHopEnabled = Value
+   end,
+})
+
+MainTab:CreateSlider({
+   Name = "Yürüme Hızı (WalkSpeed)",
+   Min = 16,
+   Max = 250,
+   CurrentValue = 16,
+   Flag = "WalkSpeed",
+   Callback = function(Value)
+        local Char = Player.Character
+        if Char and Char:FindFirstChild("Humanoid") then
+            Char.Humanoid.WalkSpeed = Value
+        end
+   end,
+})
+
+-- OYUNCU SEÇİM DROPDOWN
+local PlayerDropdown = PlayerTab:CreateDropdown({
+   Name = "Oyuncu Seçin",
+   Options = GetPlayerNames(),
+   CurrentOption = "",
+   MultipleOptions = false,
+   Flag = "TargetPlayer",
+   Callback = function(Option)
+        -- Bazı Rayfield sürümlerinde Option tablo olarak döner, garantiye alalım
+        if type(Option) == "table" then
+            _G.SelectedPlayer = Option[1] or ""
+        else
+            _G.SelectedPlayer = Option
+        end
+   end,
+})
+
+-- Oyuncu sekmesi boş görünmesin diye listeyi her 3 saniyede bir arkada otomatik günceller
+task.spawn(function()
+    while true do
+        task.wait(3)
+        if PlayerDropdown then
+            PlayerDropdown:Refresh(GetPlayerNames(), true)
+        end
+    end
+end)
+
+PlayerTab:CreateButton({
+   Name = "Seçilen Kişiyi Uçur",
+   Callback = function()
+        if _G.SelectedPlayer ~= "" and _G.SelectedPlayer ~= "Sunucuda Kimse Yok" then
+            local Target = game.Players:FindFirstChild(_G.SelectedPlayer)
+            if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+                _G.TargetFlying = true
+                _G.Flying = true
+                StartFlying()
+                
+                task.spawn(function()
+                    while _G.TargetFlying and _G.Flying do
+                        task.wait()
+                        local Char = Player.Character
+                        local TargetChar = Target.Character
+                        if Char and Char:FindFirstChild("HumanoidRootPart") and TargetChar and TargetChar:FindFirstChild("HumanoidRootPart") then
+                            -- Hedef oyuncunun 5 birim yukarısında asılı kalarak onu uçarak takip et
+                            Char.HumanoidRootPart.CFrame = TargetChar.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+                        end
+                    end
+                end)
+            end
+        end
+   end,
+})
+
+PlayerTab:CreateButton({
+   Name = "Uçurmayı Durdur",
+   Callback = function()
+        _G.TargetFlying = false
+        _G.Flying = false
+   end,
+})
+
+
