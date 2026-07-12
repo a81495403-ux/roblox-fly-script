@@ -1,25 +1,90 @@
--- KAVO UI: Mobil Cihazlar ve Delta İçin En Kararlı Arayüz
-local Kavo = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Kavo:CreateLib("Ayazlarkolar | Script", "DarkTheme")
+-- DIŞ KÜTÜPHANE BAĞIMLILIĞI OLMAYAN %100 UYUMLU DOĞAL MENÜ
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ToggleFlyBtn = Instance.new("TextButton")
+local SpeedTextBox = Instance.new("TextBox")
+local WallHopBtn = Instance.new("TextButton")
+local TargetTextBox = Instance.new("TextBox")
+local ControlPlayerBtn = Instance.new("TextButton")
+local CloseBtn = Instance.new("TextButton")
 
--- SEKMELER (Yan yana değil, alt alta ve geniş listelenir, asla kaybolmaz)
-local MainTab = Window:NewTab("Karakter")
-local MainSection = MainTab:NewSection("Uçuş ve Hız Ayarları")
+-- Arayüz Ayarları
+ScreenGui.Parent = game.CoreGui
+MainFrame.Name = "AyazlarkolarMenu"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Active = true
+MainFrame.Draggable = true -- Menüyü ekranda sürükleyebilirsin
 
-local PlayerTab = Window:NewTab("Oyuncu Kontrolü")
-local PlayerSection = PlayerTab:NewSection("Hedef Oyuncu Seçenekleri")
+Title.Parent = MainFrame
+Title.Text = "Ayazlarkolar | Ultimate v6"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
 
--- GLOBAL DEĞİŞKENLER
-_G.Flying = false
-_G.FlySpeed = 50
-_G.WallHopEnabled = false
-_G.SelectedPlayer = ""
-_G.TargetFlying = false
+-- Uçuş Butonu
+ToggleFlyBtn.Parent = MainFrame
+ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+ToggleFlyBtn.Position = UDim2.new(0.05, 0, 0.15, 0)
+ToggleFlyBtn.Size = UDim2.new(0.9, 0, 0, 40)
+ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+ToggleFlyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 
+-- Hız Girdisi (Buraya sayı yazarak hızı kesin olarak ayarlarsın)
+SpeedTextBox.Parent = MainFrame
+SpeedTextBox.Text = "50"
+SpeedTextBox.PlaceholderText = "Uçuş Hızı Gir (Örn: 50)"
+SpeedTextBox.Position = UDim2.new(0.05, 0, 0.3, 0)
+SpeedTextBox.Size = UDim2.new(0.9, 0, 0, 40)
+SpeedTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Wall Hop Butonu
+WallHopBtn.Parent = MainFrame
+WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
+WallHopBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+WallHopBtn.Size = UDim2.new(0.9, 0, 0, 40)
+WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+WallHopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Oyuncu Adı Giriş Kutusu
+TargetTextBox.Parent = MainFrame
+TargetTextBox.Text = ""
+TargetTextBox.PlaceholderText = "Uçurulacak Oyuncu Adı Yaz"
+TargetTextBox.Position = UDim2.new(0.05, 0, 0.6, 0)
+TargetTextBox.Size = UDim2.new(0.9, 0, 0, 40)
+TargetTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+TargetTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Oyuncuyu Uçur Butonu
+ControlPlayerBtn.Parent = MainFrame
+ControlPlayerBtn.Text = "Seçilen Kişiyi Uçur / Durdur"
+ControlPlayerBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
+ControlPlayerBtn.Size = UDim2.new(0.9, 0, 0, 40)
+ControlPlayerBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 50)
+ControlPlayerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Kapatma Butonu
+CloseBtn.Parent = MainFrame
+CloseBtn.Text = "X"
+CloseBtn.Position = UDim2.new(0.85, 0, 0, 0)
+CloseBtn.Size = UDim2.new(0, 45, 0, 40)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- KOD DEĞİŞKENLERİ
+local Flying = false
+local WallHopEnabled = false
+local TargetFlying = false
 local Player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
--- 1. DÜZELTİLMİŞ HER YÖNE VE DOĞRU AÇILI UÇUŞ FONKSİYONU (Ters Yön Düzeltildi)
+-- TAM HASSASİYETLİ YÖN DÜZELTİLMİŞ UÇUŞ FONKSİYONU
 local function StartFlying()
     local Character = Player.Character or Player.CharacterAdded:Wait()
     local Root = Character:WaitForChild("HumanoidRootPart")
@@ -31,7 +96,7 @@ local function StartFlying()
     local BodyVelocity = Instance.new("BodyVelocity")
     BodyVelocity.Name = "FlyVelocity"
     BodyVelocity.MaxForce = Vector3.new(1/0, 1/0, 1/0)
-    BodyVelocity.Velocity = Vector3.new(0,0,0)
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
     BodyVelocity.Parent = Root
     
     local BodyGyro = Instance.new("BodyGyro")
@@ -41,19 +106,15 @@ local function StartFlying()
     BodyGyro.Parent = Root
 
     task.spawn(function()
-        while _G.Flying and Character and Root and Humanoid do
+        while Flying and Character and Root and Humanoid do
             RunService.RenderStepped:Wait()
+            local CurrentSpeed = tonumber(SpeedTextBox.Text) or 50 -- Kutudan gelen hızı oku
+            
             if Humanoid.MoveDirection.Magnitude > 0 then
                 local CamCFrame = workspace.CurrentCamera.CFrame
-                -- Yönün ters olmaması için vektör hesaplamasını düzelttik
-                local Look = CamCFrame.LookVector
-                local Right = CamCFrame.RightVector
-                
-                -- Karakterin bastığı yöne göre (Joystick yönü) tam ileri, geri, sağa veya sola uçur
-                local Direction = (Right * Humanoid.MoveDirection.X) + (Look * Humanoid.MoveDirection.Z)
-                if Direction.Magnitude > 0 then
-                    BodyVelocity.Velocity = Direction.Unit * _G.FlySpeed
-                end
+                -- Doğru yön için düzeltilmiş kamera matrisi (İleri basınca ileri, geri basınca geri gider)
+                local Direction = (CamCFrame.RightVector * Humanoid.MoveDirection.X) + (CamCFrame.LookVector * -Humanoid.MoveDirection.Z)
+                BodyVelocity.Velocity = Vector3.new(Direction.X, Direction.Y, Direction.Z).Unit * CurrentSpeed
             else
                 BodyVelocity.Velocity = Vector3.new(0, 0, 0)
             end
@@ -64,11 +125,62 @@ local function StartFlying()
     end)
 end
 
--- 2. OTOMATİK WALL HOP DÖNGÜSÜ
+-- TETİKLEYİCİLER (BUTTON CLICK EVENTS)
+ToggleFlyBtn.MouseButton1Click:Connect(function()
+    Flying = not Flying
+    if Flying then
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (AÇIK)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+        StartFlying()
+    else
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+WallHopBtn.MouseButton1Click:Connect(function()
+    WallHopEnabled = not WallHopEnabled
+    if WallHopEnabled then
+        WallHopBtn.Text = "Otomatik Wall Hop (AÇIK)"
+        WallHopBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    else
+        WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
+        WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+ControlPlayerBtn.MouseButton1Click:Connect(function()
+    TargetFlying = not TargetFlying
+    if TargetFlying then
+        local TargetName = TargetTextBox.Text
+        local Target = game.Players:FindFirstChild(TargetName)
+        if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+            Flying = true
+            StartFlying()
+            task.spawn(function()
+                while TargetFlying and Flying do
+                    task.wait()
+                    local Char = Player.Character
+                    local TargetChar = Target.Character
+                    if Char and Char:FindFirstChild("HumanoidRootPart") and TargetChar and TargetChar:FindFirstChild("HumanoidRootPart") then
+                        Char.HumanoidRootPart.CFrame = TargetChar.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+                    end
+                end
+            end)
+        end
+    else
+        TargetFlying = false
+        Flying = false
+        ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
+        ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+-- OTOMATİK WALL HOP MEKANİZMASI
 task.spawn(function()
     while true do
         task.wait(0.05)
-        if _G.WallHopEnabled then
+        if WallHopEnabled then
             local Character = Player.Character
             local Root = Character and Character:FindFirstChild("HumanoidRootPart")
             local Humanoid = Character and Character:FindFirstChild("Humanoid")
@@ -85,72 +197,4 @@ task.spawn(function()
             end
         end
     end
-end)
-
--- 3. OYUNCU LİSTESİ ALMA FONKSİYONU
-local function GetPlayerNames()
-    local names = {}
-    for _, p in ipairs(game.Players:GetPlayers()) do
-        if p ~= Player then
-            table.insert(names, p.Name)
-        end
-    end
-    return names
-end
-
--- --- KARAKTER SEKME ELEMANLARI ---
-
-MainSection:NewToggle("Uçmayı Aç / Kapat", "Karakteri uçurur veya durdurur", function(state)
-    _G.Flying = state
-    if _G.Flying then StartFlying() end
-end)
-
--- Kavo Slider Kodu Delta ile %100 Uyumlu Çalışır
-MainSection:NewSlider("Uçuş Hızı (Speed)", "Uçma hızınızı ayarlar", 250, 10, function(s)
-    _G.FlySpeed = s
-end)
-
-MainSection:NewToggle("Otomatik Wall Hop", "Duvarlara çarpınca otomatik zıplar", function(state)
-    _G.WallHopEnabled = state
-end)
-
-MainSection:NewSlider("Yürüme Hızı (WalkSpeed)", "Normal yürüme hızını ayarlar", 250, 16, function(s)
-    local Char = Player.Character
-    if Char and Char:FindFirstChild("Humanoid") then
-        Char.Humanoid.WalkSpeed = s
-    end
-end)
-
--- --- OYUNCU KONTROL SEKME ELEMANLARI ---
-
--- Kavo kütüphanesinde dropdownlar çökme yapmasın diye doğrudan seçim butonu ekledik
-PlayerSection:NewTextBox("Oyuncu Adı Yaz", "Uçurmak istediğin kişinin adını gir", function(txt)
-    _G.SelectedPlayer = txt
-end)
-
-PlayerSection:NewButton("Seçilen Kişiyi Uçur (Takip Et)", "Adını yazdığın kişiyi uçurur", function()
-    if _G.SelectedPlayer ~= "" then
-        local Target = game.Players:FindFirstChild(_G.SelectedPlayer)
-        if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
-            _G.TargetFlying = true
-            _G.Flying = true
-            StartFlying()
-            
-            task.spawn(function()
-                while _G.TargetFlying and _G.Flying do
-                    task.wait()
-                    local Char = Player.Character
-                    local TargetChar = Target.Character
-                    if Char and Char:FindFirstChild("HumanoidRootPart") and TargetChar and TargetChar:FindFirstChild("HumanoidRootPart") then
-                        Char.HumanoidRootPart.CFrame = TargetChar.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
-                    end
-                end
-            end)
-        end
-    end
-end)
-
-PlayerSection:NewButton("Uçurmayı Durdur", "Takibi ve uçmayı kapatır", function()
-    _G.TargetFlying = false
-    _G.Flying = false
 end)
