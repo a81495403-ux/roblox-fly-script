@@ -1,72 +1,263 @@
--- AYAZLAR KOLAR | ULTIMATE FINAL v13 (GOD MODE)
+-- AYAZLAR KOLAR | ULTIMATE FINAL v13 (TAM VE EKSİKSİZ SÜRÜM)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
+local CloseBtn = Instance.new("TextButton")
 
 ScreenGui.Parent = game.CoreGui
 MainFrame.Name = "AyazlarkolarMenu"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 MainFrame.Position = UDim2.new(0.3, 0, 0.1, 0)
-MainFrame.Size = UDim2.new(0, 320, 0, 700)
+MainFrame.Size = UDim2.new(0, 320, 0, 520)
 MainFrame.Active = true
 MainFrame.Draggable = true 
 
--- RAINBOW EFFECT
-task.spawn(function() while true do for i = 0, 1, 0.01 do MainFrame.BorderColor3 = Color3.fromHSV(i, 1, 1) task.wait(0.05) end end end)
+-- RAINBOW EFFECT (GÖKKUŞAĞI ÇERÇEVE)
+task.spawn(function()
+    while true do
+        for i = 0, 1, 0.01 do
+            MainFrame.BorderColor3 = Color3.fromHSV(i, 1, 1)
+            task.wait(0.05)
+        end
+    end
+end)
 
 Title.Parent = MainFrame
 Title.Text = "Ayazlarkolar | FINAL v13"
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+
+CloseBtn.Parent = MainFrame
+CloseBtn.Text = "X"
+CloseBtn.Position = UDim2.new(0.85, 0, 0, 0)
+CloseBtn.Size = UDim2.new(0, 45, 0, 40)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
 local ScrollFrame = Instance.new("ScrollingFrame")
 ScrollFrame.Parent = MainFrame
 ScrollFrame.Size = UDim2.new(1, 0, 1, -40)
 ScrollFrame.Position = UDim2.new(0, 0, 0, 40)
 ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 3000)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1100) -- Kaydırma alanı tam boyutta
+ScrollFrame.ScrollBarThickness = 6
 
 local function createButton(text, pos, color)
     local btn = Instance.new("TextButton")
     btn.Parent = ScrollFrame
     btn.Text = text
     btn.Position = pos
-    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.Size = UDim2.new(0.9, 0, 0, 38)
     btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 60)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     return btn
 end
 
--- ÖZELLİKLER
-local InfiniteJumpBtn = createButton("Infinite Jump (AÇ)", UDim2.new(0.05, 0, 0.02, 0), Color3.fromRGB(50, 150, 50))
-local LagFixBtn = createButton("Lag Fix / Low GFX", UDim2.new(0.05, 0, 0.09, 0))
-local HideMenuBtn = createButton("Menüyü Gizle (P Tuşu)", UDim2.new(0.05, 0, 0.16, 0), Color3.fromRGB(100, 100, 100))
-local AutoHealBtn = createButton("Auto-Heal (AÇ)", UDim2.new(0.05, 0, 0.23, 0), Color3.fromRGB(50, 150, 50))
-local ResetBtn = createButton("Karakteri Sıfırla", UDim2.new(0.05, 0, 0.30, 0), Color3.fromRGB(150, 50, 50))
+local function createTextBox(placeholder, pos)
+    local box = Instance.new("TextBox")
+    box.Parent = ScrollFrame
+    box.PlaceholderText = placeholder
+    box.Text = ""
+    box.Position = pos
+    box.Size = UDim2.new(0.9, 0, 0, 38)
+    box.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    return box
+end
 
--- INFINITE JUMP
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfiniteJumpBtn.Text == "Infinite Jump (AÇ)" then
-        game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):ChangeState("Jumping")
+-- TÜM BUTONLAR VE TEXTBOXLAR (ALT ALTA SIRALI)
+local ToggleFlyBtn = createButton("Uçuşu Aç / Kapat (KAPALI)", UDim2.new(0.05, 0, 0.02, 0))
+local SpeedTextBox = createTextBox("Uçuş Hızı Gir (Varsayılan: 50)", UDim2.new(0.05, 0, 0.07, 0)) SpeedTextBox.Text = "50"
+local WalkSpeedTextBox = createTextBox("Yürüme Hızı (WalkSpeed: 16)", UDim2.new(0.05, 0, 0.12, 0)) WalkSpeedTextBox.Text = "16"
+local JumpPowerTextBox = createTextBox("Zıplama Gücü (JumpPower: 50)", UDim2.new(0.05, 0, 0.17, 0)) JumpPowerTextBox.Text = "50"
+local GravityTextBox = createTextBox("Yerçekimi (Gravity: 196.2)", UDim2.new(0.05, 0, 0.22, 0)) GravityTextBox.Text = "196.2"
+local FOVBox = createTextBox("Kamera Açısı (FOV: 70)", UDim2.new(0.05, 0, 0.27, 0)) FOVBox.Text = "70"
+local InfiniteJumpBtn = createButton("Sonsuz Zıplama (KAPALI)", UDim2.new(0.05, 0, 0.32, 0))
+local NoclipBtn = createButton("Noclip (Duvar Geçme - KAPALI)", UDim2.new(0.05, 0, 0.37, 0))
+local ESPBtn = createButton("ESP (Oyuncuları Gör - KAPALI)", UDim2.new(0.05, 0, 0.42, 0))
+local AutoClickBtn = createButton("Auto-Clicker (KAPALI)", UDim2.new(0.05, 0, 0.47, 0))
+local AutoCollectBtn = createButton("Otomatik Sandık Topla (KAPALI)", UDim2.new(0.05, 0, 0.52, 0))
+local AutoHealBtn = createButton("Auto-Heal (KAPALI)", UDim2.new(0.05, 0, 0.57, 0))
+local LagFixBtn = createButton("Lag Fix / Düşük Grafikler", UDim2.new(0.05, 0, 0.62, 0))
+local TargetTextBox = createTextBox("Oyuncu Adı Yaz (Işınlanma İçin)", UDim2.new(0.05, 0, 0.67, 0))
+local TeleportBtn = createButton("Yazılan Oyuncuya Işınlan", UDim2.new(0.05, 0, 0.72, 0), Color3.fromRGB(50, 70, 90))
+local ControlPlayerBtn = createButton("Seçilen Kişiyi Uçur / Durdur", UDim2.new(0.05, 0, 0.77, 0), Color3.fromRGB(80, 50, 50))
+local ResetBtn = createButton("Karakteri Sıfırla (Reset)", UDim2.new(0.05, 0, 0.82, 0), Color3.fromRGB(150, 50, 50))
+local HideMenuBtn = createButton("Menüyü Gizle (Ekranı Temizle)", UDim2.new(0.05, 0, 0.87, 0), Color3.fromRGB(80, 80, 80))
+
+-- DEĞİŞKENLER VE HİZMETLER
+local Flying, NoclipEnabled, ESPEnabled, AutoClick, AutoCollecting, AutoHeal, InfiniteJump = false, false, false, false, false, false, false
+local TargetFlying = false
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- UÇUŞ SİSTEMİ
+local function StartFlying()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local Root = Character:WaitForChild("HumanoidRootPart")
+    local Humanoid = Character:WaitForChild("Humanoid")
+    if Root:FindFirstChild("FlyVelocity") then Root.FlyVelocity:Destroy() end
+    if Root:FindFirstChild("FlyGyro") then Root.FlyGyro:Destroy() end
+    local BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.Name = "FlyVelocity"
+    BodyVelocity.MaxForce = Vector3.new(1/0, 1/0, 1/0)
+    BodyVelocity.Parent = Root
+    local BodyGyro = Instance.new("BodyGyro")
+    BodyGyro.Name = "FlyGyro"
+    BodyGyro.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
+    BodyGyro.P = 10000
+    BodyGyro.Parent = Root
+    task.spawn(function()
+        while Flying and Character and Root and Humanoid do
+            RunService.RenderStepped:Wait()
+            local CurrentSpeed = tonumber(SpeedTextBox.Text) or 50
+            if Humanoid.MoveDirection.Magnitude > 0 then
+                local Cam = workspace.CurrentCamera
+                if Cam then
+                    local MoveDirection = ((Cam.CFrame.LookVector * -Humanoid.MoveDirection.Z) + (Cam.CFrame.RightVector * Humanoid.MoveDirection.X)).Unit
+                    BodyVelocity.Velocity = MoveDirection * CurrentSpeed
+                end
+            else
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            end
+            if workspace.CurrentCamera then BodyGyro.CFrame = workspace.CurrentCamera.CFrame end
+        end
+        if BodyVelocity then BodyVelocity:Destroy() end
+        if BodyGyro then BodyGyro:Destroy() end
+    end)
+end
+
+-- AKTİF DÖNGÜLER (NOCLIP, HEAL, SANDIK, AFK)
+RunService.Stepped:Connect(function()
+    if NoclipEnabled and Player.Character then
+        for _, part in pairs(Player.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
     end
 end)
 
--- LAG FIX
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if AutoHeal and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.Health = Player.Character.Humanoid.MaxHealth
+        end
+        if AutoCollecting and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") and (v.Name == "Chest" or v.Name == "Crate" or v.Name == "Box") then
+                    Player.Character.HumanoidRootPart.CFrame = v.CFrame
+                    task.wait(0.1)
+                end
+            end
+        end
+    end
+end)
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- AYAR DEĞİŞTİRİCİLER
+WalkSpeedTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then Player.Character.Humanoid.WalkSpeed = tonumber(WalkSpeedTextBox.Text) or 16 end
+end)
+JumpPowerTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then Player.Character.Humanoid.UseJumpPower = true Player.Character.Humanoid.JumpPower = tonumber(JumpPowerTextBox.Text) or 50 end
+end)
+GravityTextBox:GetPropertyChangedSignal("Text"):Connect(function() workspace.Gravity = tonumber(GravityTextBox.Text) or 196.2 end)
+FOVBox:GetPropertyChangedSignal("Text"):Connect(function() if workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView = tonumber(FOVBox.Text) or 70 end)
+
+-- BUTON TETİKLEYİCİLERİ
+ToggleFlyBtn.MouseButton1Click:Connect(function()
+    Flying = not Flying
+    ToggleFlyBtn.Text = Flying and "Uçuşu Aç / Kapat (AÇIK)" or "Uçuşu Aç / Kapat (KAPALI)"
+    ToggleFlyBtn.BackgroundColor3 = Flying and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+    if Flying then StartFlying() end
+end)
+
+InfiniteJumpBtn.MouseButton1Click:Connect(function()
+    InfiniteJump = not InfiniteJump
+    InfiniteJumpBtn.Text = InfiniteJump and "Sonsuz Zıplama (AÇIK)" or "Sonsuz Zıplama (KAPALI)"
+    InfiniteJumpBtn.BackgroundColor3 = InfiniteJump and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+end)
+
+NoclipBtn.MouseButton1Click:Connect(function()
+    NoclipEnabled = not NoclipEnabled
+    NoclipBtn.Text = NoclipEnabled and "Noclip (AÇIK)" or "Noclip (KAPALI)"
+    NoclipBtn.BackgroundColor3 = NoclipEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+end)
+
+ESPBtn.MouseButton1Click:Connect(function()
+    ESPEnabled = not ESPEnabled
+    ESPBtn.Text = ESPEnabled and "ESP (AÇIK)" or "ESP (KAPALI)"
+    ESPBtn.BackgroundColor3 = ESPEnabled and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= Player and p.Character then
+            local old = p.Character:FindFirstChild("ESP_Highlight")
+            if old then old:Destroy() end
+            if ESPEnabled then
+                local h = Instance.new("Highlight")
+                h.Name = "ESP_Highlight"
+                h.Parent = p.Character
+            end
+        end
+    end
+end)
+
+AutoClickBtn.MouseButton1Click:Connect(function()
+    AutoClick = not AutoClick
+    AutoClickBtn.Text = AutoClick and "Auto-Clicker (AÇIK)" or "Auto-Clicker (KAPALI)"
+    AutoClickBtn.BackgroundColor3 = AutoClick and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+    task.spawn(function() while AutoClick do game:GetService("VirtualUser"):Button1Down(Vector2.new(0,0)) task.wait(0.1) end end)
+end)
+
+AutoCollectBtn.MouseButton1Click:Connect(function()
+    autoCollecting = not autoCollecting
+    AutoCollectBtn.Text = autoCollecting and "Otomatik Sandık Topla (AÇIK)" or "Otomatik Sandık Topla (KAPALI)"
+    AutoCollectBtn.BackgroundColor3 = autoCollecting and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+end)
+
+AutoHealBtn.MouseButton1Click:Connect(function()
+    AutoHeal = not AutoHeal
+    AutoHealBtn.Text = AutoHeal and "Auto-Heal (AÇIK)" or "Auto-Heal (KAPALI)"
+    AutoHealBtn.BackgroundColor3 = AutoHeal and Color3.fromRGB(50, 120, 50) or Color3.fromRGB(50, 50, 60)
+end)
+
 LagFixBtn.MouseButton1Click:Connect(function()
     game.Lighting.GlobalShadows = false
-    game.Lighting.FogEnd = 99999
-    for _, v in pairs(workspace:GetDescendants()) do
-        if v:IsA("Part") or v:IsA("MeshPart") then v.Material = Enum.Material.Plastic end
+    for _, v in pairs(workspace:GetDescendants()) do if v:IsA("Part") or v:IsA("MeshPart") then v.Material = Enum.Material.Plastic end end
+    LagFixBtn.Text = "Grafikler Düşürüldü!"
+    LagFixBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+end)
+
+TeleportBtn.MouseButton1Click:Connect(function()
+    local t = game.Players:FindFirstChild(TargetTextBox.Text)
+    if t and t.Character and Player.Character then Player.Character.HumanoidRootPart.CFrame = t.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2, 0) end
+end)
+
+ControlPlayerBtn.MouseButton1Click:Connect(function()
+    TargetFlying = not TargetFlying
+    if TargetFlying then
+        local t = game.Players:FindFirstChild(TargetTextBox.Text)
+        if t and t.Character then
+            Flying = true
+            StartFlying()
+            task.spawn(function() while TargetFlying and Flying do task.wait() if Player.Character and t.Character then Player.Character.HumanoidRootPart.CFrame = t.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0) end end end)
+        end
+    else
+        TargetFlying = false
+        Flying = false
     end
 end)
 
--- HIDE MENU (P TUŞU)
-game:GetService("UserInputService").InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.P then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-end)
+ResetBtn.MouseButton1Click:Connect(function() if Player.Character then Player.Character:BreakJoints() end end)
+HideMenuBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- [Auto-Heal, Reset vs. eski kodları buraya ekleyerek commit'ini tamamla!]
+-- Anti-AFK Aktif Etme
+Player.Idled:Connect(function() game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame) task.wait(0.5) game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame) end)
