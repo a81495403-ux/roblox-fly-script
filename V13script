@@ -1,0 +1,72 @@
+-- AYAZLAR KOLAR | ULTIMATE FINAL v13 (GOD MODE)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+
+ScreenGui.Parent = game.CoreGui
+MainFrame.Name = "AyazlarkolarMenu"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+MainFrame.Position = UDim2.new(0.3, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 320, 0, 700)
+MainFrame.Active = true
+MainFrame.Draggable = true 
+
+-- RAINBOW EFFECT
+task.spawn(function() while true do for i = 0, 1, 0.01 do MainFrame.BorderColor3 = Color3.fromHSV(i, 1, 1) task.wait(0.05) end end end)
+
+Title.Parent = MainFrame
+Title.Text = "Ayazlarkolar | FINAL v13"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Parent = MainFrame
+ScrollFrame.Size = UDim2.new(1, 0, 1, -40)
+ScrollFrame.Position = UDim2.new(0, 0, 0, 40)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 3000)
+
+local function createButton(text, pos, color)
+    local btn = Instance.new("TextButton")
+    btn.Parent = ScrollFrame
+    btn.Text = text
+    btn.Position = pos
+    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    return btn
+end
+
+-- ÖZELLİKLER
+local InfiniteJumpBtn = createButton("Infinite Jump (AÇ)", UDim2.new(0.05, 0, 0.02, 0), Color3.fromRGB(50, 150, 50))
+local LagFixBtn = createButton("Lag Fix / Low GFX", UDim2.new(0.05, 0, 0.09, 0))
+local HideMenuBtn = createButton("Menüyü Gizle (P Tuşu)", UDim2.new(0.05, 0, 0.16, 0), Color3.fromRGB(100, 100, 100))
+local AutoHealBtn = createButton("Auto-Heal (AÇ)", UDim2.new(0.05, 0, 0.23, 0), Color3.fromRGB(50, 150, 50))
+local ResetBtn = createButton("Karakteri Sıfırla", UDim2.new(0.05, 0, 0.30, 0), Color3.fromRGB(150, 50, 50))
+
+-- INFINITE JUMP
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJumpBtn.Text == "Infinite Jump (AÇ)" then
+        game.Players.LocalPlayer.Character:FindFirstChild("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+-- LAG FIX
+LagFixBtn.MouseButton1Click:Connect(function()
+    game.Lighting.GlobalShadows = false
+    game.Lighting.FogEnd = 99999
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("MeshPart") then v.Material = Enum.Material.Plastic end
+    end
+end)
+
+-- HIDE MENU (P TUŞU)
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.P then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+-- [Auto-Heal, Reset vs. eski kodları buraya ekleyerek commit'ini tamamla!]
