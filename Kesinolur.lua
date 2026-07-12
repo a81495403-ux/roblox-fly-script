@@ -1,9 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Beehive Pro | Ultimate v5",
+   Name = "Ayazlarkolar | script",
    LoadingTitle = "Script Yükleniyor...",
-   LoadingSubtitle = "by a81495403-ux",
+   LoadingSubtitle = "yapımcı:Ayaz",
    ConfigurationSaving = { Enabled = false }
 })
 
