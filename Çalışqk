@@ -1,74 +1,26 @@
--- DIŞ KÜTÜPHANE BAĞIMLILIĞI OLMAYAN %100 UYUMLU DOĞAL MENÜ
+-- DIŞ BAĞLANTI İHTİYACI OLMAYAN GELİŞMİŞ MOBİL VE DELTA UYUMLU DOĞAL MENÜ (v7)
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
-local ToggleFlyBtn = Instance.new("TextButton")
-local SpeedTextBox = Instance.new("TextBox")
-local WallHopBtn = Instance.new("TextButton")
-local TargetTextBox = Instance.new("TextBox")
-local ControlPlayerBtn = Instance.new("TextButton")
 local CloseBtn = Instance.new("TextButton")
 
--- Arayüz Ayarları
+-- Sürükleme ve Arayüz Ayarları
 ScreenGui.Parent = game.CoreGui
 MainFrame.Name = "AyazlarkolarMenu"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+MainFrame.Position = UDim2.new(0.3, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 320, 0, 500) -- Özellikler için menü boyutunu büyüttük
 MainFrame.Active = true
-MainFrame.Draggable = true -- Menüyü ekranda sürükleyebilirsin
+MainFrame.Draggable = true 
 
 Title.Parent = MainFrame
-Title.Text = "Ayazlarkolar | Ultimate v6"
+Title.Text = "Ayazlarkolar | Ultimate v7"
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+Title.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 18
 
--- Uçuş Butonu
-ToggleFlyBtn.Parent = MainFrame
-ToggleFlyBtn.Text = "Uçuşu Aç / Kapat (KAPALI)"
-ToggleFlyBtn.Position = UDim2.new(0.05, 0, 0.15, 0)
-ToggleFlyBtn.Size = UDim2.new(0.9, 0, 0, 40)
-ToggleFlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-ToggleFlyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- Hız Girdisi (Buraya sayı yazarak hızı kesin olarak ayarlarsın)
-SpeedTextBox.Parent = MainFrame
-SpeedTextBox.Text = "50"
-SpeedTextBox.PlaceholderText = "Uçuş Hızı Gir (Örn: 50)"
-SpeedTextBox.Position = UDim2.new(0.05, 0, 0.3, 0)
-SpeedTextBox.Size = UDim2.new(0.9, 0, 0, 40)
-SpeedTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-SpeedTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- Wall Hop Butonu
-WallHopBtn.Parent = MainFrame
-WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
-WallHopBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
-WallHopBtn.Size = UDim2.new(0.9, 0, 0, 40)
-WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-WallHopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- Oyuncu Adı Giriş Kutusu
-TargetTextBox.Parent = MainFrame
-TargetTextBox.Text = ""
-TargetTextBox.PlaceholderText = "Uçurulacak Oyuncu Adı Yaz"
-TargetTextBox.Position = UDim2.new(0.05, 0, 0.6, 0)
-TargetTextBox.Size = UDim2.new(0.9, 0, 0, 40)
-TargetTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-TargetTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- Oyuncuyu Uçur Butonu
-ControlPlayerBtn.Parent = MainFrame
-ControlPlayerBtn.Text = "Seçilen Kişiyi Uçur / Durdur"
-ControlPlayerBtn.Position = UDim2.new(0.05, 0, 0.75, 0)
-ControlPlayerBtn.Size = UDim2.new(0.9, 0, 0, 40)
-ControlPlayerBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 50)
-ControlPlayerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- Kapatma Butonu
 CloseBtn.Parent = MainFrame
 CloseBtn.Text = "X"
 CloseBtn.Position = UDim2.new(0.85, 0, 0, 0)
@@ -77,14 +29,60 @@ CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- KOD DEĞİŞKENLERİ
+-- Kaydırılabilir Liste (Özelliklerin sığması için)
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Parent = MainFrame
+ScrollFrame.Size = UDim2.new(1, 0, 1, -40)
+ScrollFrame.Position = UDim2.new(0, 0, 0, 40)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
+ScrollFrame.ScrollBarThickness = 6
+
+-- Tasarım Şablonu Fonksiyonu
+local function createButton(text, pos, color)
+    local btn = Instance.new("TextButton")
+    btn.Parent = ScrollFrame
+    btn.Text = text
+    btn.Position = pos
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    return btn
+end
+
+local function createTextBox(placeholder, pos)
+    local box = Instance.new("TextBox")
+    box.Parent = ScrollFrame
+    box.PlaceholderText = placeholder
+    box.Text = ""
+    box.Position = pos
+    box.Size = UDim2.new(0.9, 0, 0, 35)
+    box.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    return box
+end
+
+-- ELEMANLARIN OLUŞTURULMASI
+local ToggleFlyBtn = createButton("Uçuşu Aç / Kapat (KAPALI)", UDim2.new(0.05, 0, 0.02, 0))
+local SpeedTextBox = createTextBox("Uçuş Hızı Gir (Varsayılan: 50)", UDim2.new(0.05, 0, 0.1, 0)) SpeedTextBox.Text = "50"
+local WalkSpeedTextBox = createTextBox("Yürüme Hızı (WalkSpeed - Varsayılan: 16)", UDim2.new(0.05, 0, 0.18, 0)) WalkSpeedTextBox.Text = "16"
+local JumpPowerTextBox = createTextBox("Zıplama Gücü (JumpPower - Varsayılan: 50)", UDim2.new(0.05, 0, 0.26, 0)) JumpPowerTextBox.Text = "50"
+local GravityTextBox = createTextBox("Yerçekimi Ayarla (Gravity - Varsayılan: 196.2)", UDim2.new(0.05, 0, 0.34, 0)) GravityTextBox.Text = "196.2"
+local WallHopBtn = createButton("Otomatik Wall Hop (KAPALI)", UDim2.new(0.05, 0, 0.42, 0))
+local InfiniteJumpBtn = createButton("Sonsuz Zıplama (KAPALI)", UDim2.new(0.05, 0, 0.50, 0))
+local TargetTextBox = createTextBox("Uçurulacak Oyuncu Adı Yaz", UDim2.new(0.05, 0, 0.58, 0))
+local ControlPlayerBtn = createButton("Seçilen Kişiyi Uçur / Durdur", UDim2.new(0.05, 0, 0.66, 0), Color3.fromRGB(80, 50, 50))
+local TeleportBtn = createButton("Yazılan Oyuncuya Işınlan", UDim2.new(0.05, 0, 0.74, 0), Color3.fromRGB(50, 70, 90))
+
+-- SİSTEM DEĞİŞKENLERİ
 local Flying = false
 local WallHopEnabled = false
+local InfiniteJump = false
 local TargetFlying = false
 local Player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
--- TAM HASSASİYETLİ YÖN DÜZELTİLMİŞ UÇUŞ FONKSİYONU
+-- %100 KUSURSUZ VE HASSASİYETLİ MOBİL FLY DÖNGÜSÜ
 local function StartFlying()
     local Character = Player.Character or Player.CharacterAdded:Wait()
     local Root = Character:WaitForChild("HumanoidRootPart")
@@ -108,24 +106,64 @@ local function StartFlying()
     task.spawn(function()
         while Flying and Character and Root and Humanoid do
             RunService.RenderStepped:Wait()
-            local CurrentSpeed = tonumber(SpeedTextBox.Text) or 50 -- Kutudan gelen hızı oku
+            local CurrentSpeed = tonumber(SpeedTextBox.Text) or 50
             
             if Humanoid.MoveDirection.Magnitude > 0 then
-                local CamCFrame = workspace.CurrentCamera.CFrame
-                -- Doğru yön için düzeltilmiş kamera matrisi (İleri basınca ileri, geri basınca geri gider)
-                local Direction = (CamCFrame.RightVector * Humanoid.MoveDirection.X) + (CamCFrame.LookVector * -Humanoid.MoveDirection.Z)
-                BodyVelocity.Velocity = Vector3.new(Direction.X, Direction.Y, Direction.Z).Unit * CurrentSpeed
+                local Cam = workspace.CurrentCamera
+                if Cam then
+                    -- Joystick hareketlerini kameranın gerçek açısıyla (Yukarı/Aşağı dahil) kusursuz senkronize eden formül:
+                    local LookVector = Cam.CFrame.LookVector
+                    local RightVector = Cam.CFrame.RightVector
+                    
+                    local ForwardMove = LookVector * -Humanoid.MoveDirection.Z
+                    local SideMove = RightVector * Humanoid.MoveDirection.X
+                    
+                    local MoveDirection = (ForwardMove + SideMove).Unit
+                    BodyVelocity.Velocity = MoveDirection * CurrentSpeed
+                end
             else
                 BodyVelocity.Velocity = Vector3.new(0, 0, 0)
             end
-            BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            if workspace.CurrentCamera then
+                BodyGyro.CFrame = workspace.CurrentCamera.CFrame
+            end
         end
         if BodyVelocity then BodyVelocity:Destroy() end
         if BodyGyro then BodyGyro:Destroy() end
     end)
 end
 
--- TETİKLEYİCİLER (BUTTON CLICK EVENTS)
+-- TEKST KUTULARI VE DEĞİŞKEN TETİKLEYİCİLERİ
+WalkSpeedTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(WalkSpeedTextBox.Text)
+    if val and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.WalkSpeed = val
+    end
+end)
+
+JumpPowerTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(JumpPowerTextBox.Text)
+    if val and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.UseJumpPower = true
+        Player.Character.Humanoid.JumpPower = val
+    end
+end)
+
+GravityTextBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local val = tonumber(GravityTextBox.Text)
+    if val then
+        workspace.Gravity = val
+    end
+end)
+
+-- SONSUZ ZIPLAMA (INFINITE JUMP)
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if InfiniteJump and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- BUTON ETKİLEŞİMLERİ
 ToggleFlyBtn.MouseButton1Click:Connect(function()
     Flying = not Flying
     if Flying then
@@ -146,6 +184,25 @@ WallHopBtn.MouseButton1Click:Connect(function()
     else
         WallHopBtn.Text = "Otomatik Wall Hop (KAPALI)"
         WallHopBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+InfiniteJumpBtn.MouseButton1Click:Connect(function()
+    InfiniteJump = not InfiniteJump
+    if InfiniteJump then
+        InfiniteJumpBtn.Text = "Sonsuz Zıplama (AÇIK)"
+        InfiniteJumpBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+    else
+        InfiniteJumpBtn.Text = "Sonsuz Zıplama (KAPALI)"
+        InfiniteJumpBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    end
+end)
+
+TeleportBtn.MouseButton1Click:Connect(function()
+    local TargetName = TargetTextBox.Text
+    local Target = game.Players:FindFirstChild(TargetName)
+    if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 2, 0)
     end
 end)
 
